@@ -1,27 +1,38 @@
-function login(e) {
+const form = document.getElementById("loginForm");
+form.addEventListener("submit",login);
+
+
+async function login(e){
     e.preventDefault();
-    console.log(e.target.name);
-    const form = new FormData(e.target);
+    let loginData = {
+        email:e.target.mail.value,
+        password:e.target.password.value,
+    };
+    
 
-    const loginDetails = {
-        email: form.get("email"),
-        password: form.get("password")
-
-    }
-    console.log(loginDetails)
-    axios.post('http://localhost:3000/user/login',loginDetails).then(response => {
-        if(response.status === 200){
-            localStorage.setItem('token', response.data.token);
-            localStorage.setItem('userDetails', JSON.stringify(response.data.user))
-            window.location.href = "../ExpenseTracker/index.html" // change the page on successful login
-        } else {
-            throw new Error('Failed to login')
+    try{
+        const res = await axios.post("http://localhost:3000/login",loginData);
+        console.log(res);
+        const alert = document.getElementById("message-alert");
+        if(res.data.userDetails){ //When the email and password matches
+            alert.innerHTML = res.data.message;
+            alert.style.display = "block";
+            alert.style.color = "blue";
+            // alert.style.fontWeight = "bold";
+            
+            console.log(res.data.token);
+            localStorage.setItem('token',res.data.token);
+            localStorage.setItem('premium',res.data.premium) //we save the token in the local storage 
+            window.location.href = "/Frontend/Expense/expense.html" //and go to the expense form page
         }
-    }).catch(err => {
-        document.body.innerHTML += `<div style="color:red;">${err} <div>`;
-    })
-}
-
-function forgotpassword() {
-    window.location.href = "../ForgotPassword/index.html"
+        else{
+            alert.innerHTML = res.data.message;
+            alert.style.color = "red";
+            // alert.style.fontWeight = "bold";
+            console.log(res.data)
+        }
+    }
+    catch(err){
+        console.log(err)
+    }
 }
